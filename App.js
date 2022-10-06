@@ -1,7 +1,8 @@
 import {StatusBar} from 'expo-status-bar';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View, ScrollView, TextInput, Button} from 'react-native';
 import {useCallback, useEffect, useState} from "react";
 import Web3 from "web3";
+import ModalDropdown from 'react-native-modal-dropdown';
 
 const erc20Abi = require("./ERC20.json");
 // const erc20Abi = {};
@@ -16,8 +17,6 @@ export default function App() {
 
     const updateInfo = useCallback(() => {
         console.log("update balances");
-        // console.log("web3", web3);
-        console.log("erc20Abi", erc20Abi);
         if (!web3)
             return;
         web3.eth.getBalance(account.address).then((bal) => {
@@ -49,10 +48,70 @@ export default function App() {
 
     return (
         <View style={styles.container}>
-            <Text>Embedded web3 wallet</Text>
-            <Text>My account: {account.address}</Text>
-            <Text>My balance: {ethBalance} ETH</Text>
-            <Text>Token balance: {targetTokenBalance}</Text>
+            <ScrollView>
+                <Text>Embedded web3 wallet</Text>
+                <Text/>
+
+                <Button
+                    onPress={() => {
+                    }}
+                    title="Create random"
+                />
+
+                <Text>Mnemonic:</Text>
+                <TextInput style={styles.textInput}/>
+                <Button
+                    onPress={() => {
+                    }}
+                    title="Add mnemonic"
+                />
+                <Text>Private key:</Text>
+                <TextInput style={styles.textInput}/>
+                <Button
+                    onPress={() => {
+                    }}
+                    title="Add private key"
+                />
+
+                <Text>Select account:</Text>
+                <ModalDropdown style={styles.dropDown} options={['0x123', '0x234']} onSelect={console.log} defaultIndex={0} />
+                <Text>My balance: {ethBalance} ETH</Text>
+
+                <Text/>
+                <Text>Token: {"0x9999999999999999999999999999999999999996"}</Text>
+                <Text/>
+
+                <Button
+                    onPress={() => {
+                    }}
+                    title="Mint 1000 tokens to me"
+                />
+                <Text>My token balance: {targetTokenBalance}</Text>
+
+                <Text/>
+
+                <Text>Balance of:</Text>
+                <TextInput style={styles.textInput}/>
+                <Button
+                    onPress={() => {
+                    }}
+                    title="Update"
+                />
+                <Text>balance: {targetTokenBalance}</Text>
+
+                <Text/>
+
+                <Text>Transfer token to address:</Text>
+                <TextInput style={styles.textInput}/>
+                <Text>Amount:</Text>
+                <TextInput style={styles.textInput}/>
+                <Button
+                    onPress={() => {
+                    }}
+                    title="Transfer"
+                />
+                <Text>Result</Text>
+            </ScrollView>
             <StatusBar style="auto"/>
         </View>
     );
@@ -64,5 +123,17 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
+        marginTop: 50,
     },
+    textInput: {
+        borderColor: "#00",
+        borderWidth: 1,
+        height: 40,
+        width: 300,
+        padding: 10
+    },
+    dropDown: {
+        height: 40,
+        backgroundColor: "#ccc",
+    }
 });
