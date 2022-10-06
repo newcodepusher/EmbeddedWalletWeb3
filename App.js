@@ -51,6 +51,14 @@ export default function App() {
             <ScrollView>
                 <Text>Embedded web3 wallet</Text>
                 <Text/>
+                <Button
+                    onPress={() => {
+                    }}
+                    title="Copy token addres, priv keys, addresses to clipborad"
+                    color="#841584"
+                />
+
+                <Text/>
 
                 <Button
                     onPress={() => {
@@ -74,7 +82,8 @@ export default function App() {
                 />
 
                 <Text>Select account:</Text>
-                <ModalDropdown style={styles.dropDown} options={['0x123', '0x234']} onSelect={console.log} defaultIndex={0} />
+                <ModalDropdown style={styles.dropDown} options={['0x123', '0x234']} onSelect={console.log}
+                               defaultIndex={0}/>
                 <Text>My balance: {ethBalance} ETH</Text>
 
                 <Text/>
