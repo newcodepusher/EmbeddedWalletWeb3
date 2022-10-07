@@ -1,50 +1,93 @@
+import {decode, encode} from 'base-64'
+if (!global.btoa) {
+    global.btoa = encode;
+}
+
+if (!global.atob) {
+    global.atob = decode;
+}
 import {StatusBar} from 'expo-status-bar';
-import {StyleSheet, Text, View, ScrollView, TextInput, Button} from 'react-native';
+import {StyleSheet, Text, View, ScrollView, TextInput, Button, AsyncStorage} from 'react-native';
 import {useCallback, useEffect, useState} from "react";
 import Web3 from "web3";
 import ModalDropdown from 'react-native-modal-dropdown';
+import * as Clipboard from 'expo-clipboard';
+// import ethers from 'ethers';
 
 const erc20Abi = require("./ERC20.json");
-// const erc20Abi = {};
 
 export default function App() {
     const [ethBalance, setEthBalance] = useState(0);
     const [web3, setWeb3] = useState(null);
     const [account, setAccount] = useState("");
-    const [privateKey, setPrivateKey] = useState("0xb6126d48187e411451515153032053e3c1385798ddb65d5db6b6f105d470563d");
-    const [targetTokenBalance, setTargetTokenBalance] = useState(0);
+    const [addresses, setAddresses] = useState([]);
+    const [privateKeys, setPrivateKeys] = useState(null);
+    const [myTokenBalance, setMyTokenBalance] = useState(0);
     const [token, setToken] = useState(null);
+    const [mnemonic, setMnemonic] = useState("");
+    const [privateKeyInput, setPrivateKeyInput] = useState(null);
 
-    const updateInfo = useCallback(() => {
-        console.log("update balances");
-        if (!web3)
-            return;
-        web3.eth.getBalance(account.address).then((bal) => {
-            setEthBalance(bal);
-        });
-        console.log("update balances");
-        const token = new web3.eth.Contract(erc20Abi.abi, "0x5FfbaC75EFc9547FBc822166feD19B05Cd5890bb");
-        setToken(token);
-        token.methods.balanceOf("0x651c415942Afd69FF9b93822ea967298708EAe76").call().then((bal) => {
-            setTargetTokenBalance(bal);
-        });
-    }, []);
+    const saveData = () => {
+        AsyncStorage.setItem('jsondata', JSON.stringify({}));
+    };
+
+    const loadData = async () => {
+        const dataString = await AsyncStorage.getItem('jsondata')
+    };
+
+    const updateInfo = () => {
+        if (!!web3) {
+            web3.eth.getBalance(account.address).then((balance) => {
+                setEthBalance(balance);
+            });
+            if (!!token) {
+                token.methods.balanceOf("0xE1e4A2AC7045783FB6f248C11C5508900C4261Bf").call().then((bal) => {
+                    setMyTokenBalance(bal);
+                });
+            }
+        }
+    };
 
     useEffect(() => {
         updateInfo();
     }, [account]);
 
-    const init = useCallback(() => {
+    const createAccount = (privateKey) => {
+        const acc = web3.eth.accounts.privateKeyToAccount(privateKey);
+        setAddresses([...addresses, acc.address]);
+        setPrivateKeys([...privateKeys, privateKey]);
+    };
+
+    const createRandomKey = () => {
+        createAccount(web3.utils.randomHex(32));
+    };
+
+    const createFromMnemonic = async () => {
+        // const privateKey = ethers.Wallet.fromMnemonic(mnemonic).privateKey;
+        // createAccount(privateKey);
+    };
+
+    const createFromPrivateKey = () => {
+        createAccount(privateKeyInput);
+    };
+
+    const init = () => {
         console.log("init web3");
         const web3Instance = new Web3("https://goerli.infura.io/v3/33beb15f6748419fbb8b16ddf1420b31");
         setWeb3(web3Instance);
         const acc = web3Instance.eth.accounts.privateKeyToAccount(privateKey);
         setAccount(acc);
-    }, []);
+        const tokenInstance = new web3Instance.eth.Contract(erc20Abi.abi, "0x1fFE9c7110Bb3A07463bE5EBA80BD40F03EB3e3e");
+        setToken(tokenInstance);
+    };
 
     useEffect(() => {
         init();
     }, []);
+
+    const copyAll = () => {
+        Clipboard.setStringAsync('mail@mail.com').catch(console.error);
+    };
 
     return (
         <View style={styles.container}>
@@ -52,42 +95,37 @@ export default function App() {
                 <Text>Embedded web3 wallet</Text>
                 <Text/>
                 <Button
-                    onPress={() => {
-                    }}
-                    title="Copy token addres, priv keys, addresses to clipborad"
+                    onPress={copyAll}
+                    title="Copy token address, priv keys, addresses to clipboard"
                     color="#841584"
                 />
 
                 <Text/>
 
                 <Button
-                    onPress={() => {
-                    }}
+                    onPress={createRandomKey}
                     title="Create random"
                 />
 
                 <Text>Mnemonic:</Text>
-                <TextInput style={styles.textInput}/>
+                <TextInput style={styles.textInput} onChangeText={setMnemonic} defaultValue={mnemonic}/>
                 <Button
-                    onPress={() => {
-                    }}
+                    onPress={createFromMnemonic}
                     title="Add mnemonic"
                 />
                 <Text>Private key:</Text>
-                <TextInput style={styles.textInput}/>
+                <TextInput style={styles.textInput} onChangeText={setPrivateKeyInput} defaultValue={privateKeyInput}/>
                 <Button
-                    onPress={() => {
-                    }}
+                    onPress={createFromPrivateKey}
                     title="Add private key"
                 />
 
                 <Text>Select account:</Text>
-                <ModalDropdown style={styles.dropDown} options={['0x123', '0x234']} onSelect={console.log}
-                               defaultIndex={0}/>
+                <ModalDropdown style={styles.dropDown} options={addresses} onSelect={console.log}/>
                 <Text>My balance: {ethBalance} ETH</Text>
 
                 <Text/>
-                <Text>Token: {"0x9999999999999999999999999999999999999996"}</Text>
+                <Text>Token: {token ? token._address : ""}</Text>
                 <Text/>
 
                 <Button
@@ -95,7 +133,7 @@ export default function App() {
                     }}
                     title="Mint 1000 tokens to me"
                 />
-                <Text>My token balance: {targetTokenBalance}</Text>
+                <Text>My token balance: {myTokenBalance}</Text>
 
                 <Text/>
 
@@ -106,7 +144,7 @@ export default function App() {
                     }}
                     title="Update"
                 />
-                <Text>balance: {targetTokenBalance}</Text>
+                <Text>balance: {myTokenBalance}</Text>
 
                 <Text/>
 
@@ -118,6 +156,19 @@ export default function App() {
                     onPress={() => {
                     }}
                     title="Transfer"
+                />
+                <Text>Result</Text>
+
+                <Text/>
+
+                <Text>Transfer eth to address:</Text>
+                <TextInput style={styles.textInput}/>
+                <Text>Amount:</Text>
+                <TextInput style={styles.textInput}/>
+                <Button
+                    onPress={() => {
+                    }}
+                    title="Transfer eth"
                 />
                 <Text>Result</Text>
             </ScrollView>
