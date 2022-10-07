@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {StyleSheet, Text, View, ScrollView, TextInput, Button, AsyncStorage, Clipboard} from 'react-native';
-import {useEffect, useState} from "react";
+import {useEffect, useState, useCallback} from "react";
 import Web3 from "web3";
 import ModalDropdown from 'react-native-modal-dropdown';
 import HDWallet from 'ethereum-hdwallet';
@@ -27,7 +27,7 @@ export default function App() {
 
     const prepareInfo = () => {
         return {
-            token: token._address,
+            token: token ? token._address : "",
             privateKeys,
             addresses,
             rpc: rpcUrl,
@@ -40,6 +40,7 @@ export default function App() {
 
     const loadData = async () => {
         const dataString = await AsyncStorage.getItem('jsondata');
+        console.log("loadData()", dataString);
         if (!!dataString && dataString.length) {
             const jsonData = JSON.parse(dataString);
             setAddresses(jsonData.addresses);
@@ -106,12 +107,16 @@ export default function App() {
         updateInfo();
     }, [account]);
 
+    useEffect(() => {
+        if (privateKeys.length > 0) {
+            saveData();
+        }
+    }, [privateKeys]);
 
     const createAccount = (privateKey) => {
         const acc = web3.eth.accounts.privateKeyToAccount(privateKey);
         setAddresses([...addresses, acc.address]);
         setPrivateKeys([...privateKeys, privateKey]);
-        saveData();
     };
 
     const createRandomKey = () => {
@@ -134,11 +139,11 @@ export default function App() {
         setWeb3(web3Instance);
         const tokenInstance = new web3Instance.eth.Contract(erc20Abi.abi, "0x1fFE9c7110Bb3A07463bE5EBA80BD40F03EB3e3e");
         setToken(tokenInstance);
-        loadData().catch(console.error);
     };
 
     useEffect(() => {
         init();
+        loadData().catch(console.error);
     }, []);
 
     const copyAll = () => {
