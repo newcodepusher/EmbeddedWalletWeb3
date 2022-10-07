@@ -11,7 +11,7 @@ export default function App() {
     const rpcUrl = "https://goerli.infura.io/v3/33beb15f6748419fbb8b16ddf1420b31";
     const [ethBalance, setEthBalance] = useState(0);
     const [web3, setWeb3] = useState(null);
-    const [account, setAccount] = useState("");
+    const [account, setAccount] = useState({});
     const [accountPrivateKey, setAccountPrivateKey] = useState("");
     const [addresses, setAddresses] = useState([]);
     const [privateKeys, setPrivateKeys] = useState([]);
@@ -98,6 +98,39 @@ export default function App() {
                 console.log(":signedTx", signedTx);
                 web3.eth.sendSignedTransaction(signedTx.rawTransaction).then((bal) => {
                     setTransferTokenResult("ok");
+                }).catch((err) => {
+                    console.log(err);
+                    setTransferTokenResult("error");
+                });
+            }
+        }
+    };
+
+    const mintToken = async () => {
+        if (!!web3) {
+            if (!!token && !!account.address) {
+                setTransferTokenResult("pending");
+                const tx = token.methods.mint(account.address, 1000)
+                    .encodeABI();
+                const nonce = await web3.eth.getTransactionCount(account.address);
+                console.log(":nonce", nonce);
+                let options = {
+                    from: account.address,
+                    to: token._address,
+                    gas: 80000,
+                    gasPrice: 1500000000,
+                    value: 0,
+                    data: tx,
+                    nonce: nonce
+                };
+                const signedTx = await web3.eth.accounts.signTransaction(options, accountPrivateKey).catch((err) => {
+                    console.log(err);
+                    setTransferTokenResult("error");
+                });
+                console.log(":signedTx", signedTx);
+                web3.eth.sendSignedTransaction(signedTx.rawTransaction).then((bal) => {
+                    setTransferTokenResult("ok");
+                    updateInfo();
                 }).catch((err) => {
                     console.log(err);
                     setTransferTokenResult("error");
@@ -199,8 +232,7 @@ export default function App() {
                 <Text/>
 
                 <Button
-                    onPress={() => {
-                    }}
+                    onPress={mintToken}
                     title="Mint 1000 tokens to me"
                 />
                 <Text>My token balance: {myTokenBalance}</Text>
