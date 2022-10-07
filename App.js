@@ -1,18 +1,17 @@
-import {decode, encode} from 'base-64'
-if (!global.btoa) {
-    global.btoa = encode;
-}
+import crypto from "crypto";
+import safeCrypto from "react-native-fast-crypto";
+import {asyncRandomBytes} from "react-native-secure-randombytes";
 
-if (!global.atob) {
-    global.atob = decode;
-}
+window.randomBytes = asyncRandomBytes;
+window.scryptsy = safeCrypto.scrypt;
+
 import {StatusBar} from 'expo-status-bar';
 import {StyleSheet, Text, View, ScrollView, TextInput, Button, AsyncStorage} from 'react-native';
 import {useCallback, useEffect, useState} from "react";
 import Web3 from "web3";
 import ModalDropdown from 'react-native-modal-dropdown';
 import * as Clipboard from 'expo-clipboard';
-// import ethers from 'ethers';
+import HDWallet from 'ethereum-hdwallet';
 
 const erc20Abi = require("./ERC20.json");
 
@@ -63,8 +62,10 @@ export default function App() {
     };
 
     const createFromMnemonic = async () => {
-        // const privateKey = ethers.Wallet.fromMnemonic(mnemonic).privateKey;
-        // createAccount(privateKey);
+        const seed = Buffer.from(mnemonic, 'hex')
+        const hdwallet = HDWallet.fromSeed(seed)
+        const privateKey = `0x${hdwallet.derive(`m/44'/60'/0'/0/0`).getAddress().toString('hex')}`;
+        createAccount(privateKey);
     };
 
     const createFromPrivateKey = () => {
