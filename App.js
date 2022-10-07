@@ -8,9 +8,11 @@ import HDWallet from 'ethereum-hdwallet';
 const erc20Abi = require("./ERC20.json");
 
 export default function App() {
+    const rpcUrl = "https://goerli.infura.io/v3/33beb15f6748419fbb8b16ddf1420b31";
     const [ethBalance, setEthBalance] = useState(0);
     const [web3, setWeb3] = useState(null);
     const [account, setAccount] = useState("");
+    const [accountPrivateKey, setAccountPrivateKey] = useState("");
     const [addresses, setAddresses] = useState([]);
     const [privateKeys, setPrivateKeys] = useState([]);
     const [myTokenBalance, setMyTokenBalance] = useState(0);
@@ -19,13 +21,16 @@ export default function App() {
     const [privateKeyInput, setPrivateKeyInput] = useState("");
     const [addressForBalanceOf, setAddressForBalanceOf] = useState("");
     const [balanceOf, setBalanceOf] = useState("");
+    const [addressForTransferToken, setAddressForTransferToken] = useState("");
+    const [transferTokenAmount, setTransferTokenAmount] = useState(0);
+    const [transferTokenResult, setTransferTokenResult] = useState("");
 
     const prepareInfo = () => {
         return {
             token: token._address,
             privateKeys,
             addresses,
-            rpc: web3.rpcUrl,
+            rpc: rpcUrl,
         };
     };
 
@@ -68,6 +73,35 @@ export default function App() {
         }
     };
 
+    const transferToken = () => {
+        if (!!web3) {
+            if (!!token && !!addressForTransferToken && !!transferTokenAmount) {
+                setTransferTokenResult("pending");
+                const tx = token.methods.transfer(addressForTransferToken, transferTokenAmount)
+                    .encodeABI({
+                        from: account.address,
+                        gas: 1500000,
+                        gasPrice: '10000000000000'
+                    }).catch((err) => {
+                        console.log(err);
+                        setTransferTokenResult("error");
+                    });
+                console.log(":tx", tx);
+                const signedTx = web3.eth.accounts.signTransaction(tx, accountPrivateKey).catch((err) => {
+                    console.log(err);
+                    setTransferTokenResult("error");
+                });
+                console.log(":signedTx", signedTx);
+                web3.eth.sendTransaction(signedTx).then((bal) => {
+                    setTransferTokenResult("ok");
+                }).catch((err) => {
+                    console.log(err);
+                    setTransferTokenResult("error");
+                });
+            }
+        }
+    };
+
     useEffect(() => {
         updateInfo();
     }, [account]);
@@ -96,7 +130,7 @@ export default function App() {
 
     const init = () => {
         console.log("init web3");
-        const web3Instance = new Web3("https://goerli.infura.io/v3/33beb15f6748419fbb8b16ddf1420b31");
+        const web3Instance = new Web3(rpcUrl);
         setWeb3(web3Instance);
         const tokenInstance = new web3Instance.eth.Contract(erc20Abi.abi, "0x1fFE9c7110Bb3A07463bE5EBA80BD40F03EB3e3e");
         setToken(tokenInstance);
@@ -112,6 +146,7 @@ export default function App() {
     };
 
     const selectAccount = (index, address) => {
+        setAccountPrivateKey(privateKeys[index]);
         const acc = web3.eth.accounts.privateKeyToAccount(privateKeys[index]);
         setAccount(acc);
     };
@@ -176,15 +211,16 @@ export default function App() {
                 <Text/>
 
                 <Text>Transfer token to address:</Text>
-                <TextInput style={styles.textInput}/>
+                <TextInput style={styles.textInput} onChangeText={setAddressForTransferToken}
+                           defaultValue={addressForTransferToken}/>
                 <Text>Amount:</Text>
-                <TextInput style={styles.textInput}/>
+                <TextInput style={styles.textInput} onChangeText={setTransferTokenAmount}
+                           defaultValue={transferTokenAmount}/>
                 <Button
-                    onPress={() => {
-                    }}
+                    onPress={transferToken}
                     title="Transfer token"
                 />
-                <Text>Result</Text>
+                <Text>State: {transferTokenResult}</Text>
 
                 <Text/>
 
