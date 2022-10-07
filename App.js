@@ -107,13 +107,13 @@ export default function App() {
                 <TextInput style={styles.textInput} onChangeText={setMnemonic} defaultValue={mnemonic}/>
                 <Button
                     onPress={createFromMnemonic}
-                    title="Add mnemonic"
+                    title="Import mnemonic"
                 />
                 <Text>Private key:</Text>
                 <TextInput style={styles.textInput} onChangeText={setPrivateKeyInput} defaultValue={privateKeyInput}/>
                 <Button
                     onPress={createFromPrivateKey}
-                    title="Add private key"
+                    title="Import private key"
                 />
 
                 <Text>Select account:</Text>
