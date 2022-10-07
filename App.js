@@ -24,6 +24,10 @@ export default function App() {
     const [addressForTransferToken, setAddressForTransferToken] = useState("");
     const [transferTokenAmount, setTransferTokenAmount] = useState(0);
     const [transferTokenResult, setTransferTokenResult] = useState("");
+    const [mintResult, setMintResult] = useState("");
+    const [addressForTransferEth, setAddressForTransferEth] = useState("");
+    const [transferEthAmount, setTransferEthAmount] = useState(0);
+    const [transferEthResult, setTransferEthResult] = useState("");
 
     const prepareInfo = () => {
         return {
@@ -109,7 +113,7 @@ export default function App() {
     const mintToken = async () => {
         if (!!web3) {
             if (!!token && !!account.address) {
-                setTransferTokenResult("pending");
+                setMintResult("pending");
                 const tx = token.methods.mint(account.address, 1000)
                     .encodeABI();
                 const nonce = await web3.eth.getTransactionCount(account.address);
@@ -125,15 +129,45 @@ export default function App() {
                 };
                 const signedTx = await web3.eth.accounts.signTransaction(options, accountPrivateKey).catch((err) => {
                     console.log(err);
-                    setTransferTokenResult("error");
+                    setMintResult("error");
                 });
                 console.log(":signedTx", signedTx);
                 web3.eth.sendSignedTransaction(signedTx.rawTransaction).then((bal) => {
-                    setTransferTokenResult("ok");
+                    setMintResult("ok");
                     updateInfo();
                 }).catch((err) => {
                     console.log(err);
-                    setTransferTokenResult("error");
+                    setMintResult("error");
+                });
+            }
+        }
+    };
+
+    const transferEth = async () => {
+        if (!!web3) {
+            if (!!transferEthAmount && !!addressForTransferEth) {
+                setTransferEthResult("pending");
+                const nonce = await web3.eth.getTransactionCount(account.address);
+                console.log(":nonce", nonce);
+                let options = {
+                    from: account.address,
+                    to: addressForTransferEth,
+                    gas: 80000,
+                    gasPrice: 1500000000,
+                    value: transferEthAmount,
+                    nonce: nonce
+                };
+                const signedTx = await web3.eth.accounts.signTransaction(options, accountPrivateKey).catch((err) => {
+                    console.log(err);
+                    setTransferEthResult("error");
+                });
+                console.log(":signedTx", signedTx);
+                web3.eth.sendSignedTransaction(signedTx.rawTransaction).then((bal) => {
+                    setTransferEthResult("ok");
+                    updateInfo();
+                }).catch((err) => {
+                    console.log(err);
+                    setTransferEthResult("error");
                 });
             }
         }
@@ -235,6 +269,7 @@ export default function App() {
                     onPress={mintToken}
                     title="Mint 1000 tokens to me"
                 />
+                <Text>Mint status: {mintResult}</Text>
                 <Text>My token balance: {myTokenBalance}</Text>
 
                 <Text/>
@@ -265,15 +300,16 @@ export default function App() {
                 <Text/>
 
                 <Text>Transfer eth to address:</Text>
-                <TextInput style={styles.textInput}/>
+                <TextInput style={styles.textInput} onChangeText={setAddressForTransferEth}
+                           defaultValue={addressForTransferEth}/>
                 <Text>Amount:</Text>
-                <TextInput style={styles.textInput}/>
+                <TextInput style={styles.textInput} onChangeText={setTransferEthAmount}
+                           defaultValue={transferEthAmount}/>
                 <Button
-                    onPress={() => {
-                    }}
+                    onPress={transferEth}
                     title="Transfer eth"
                 />
-                <Text>Result</Text>
+                <Text>Status: {transferEthResult}</Text>
             </ScrollView>
         </View>
     );
