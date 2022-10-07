@@ -40,7 +40,6 @@ export default function App() {
 
     const loadData = async () => {
         const dataString = await AsyncStorage.getItem('jsondata');
-        console.log("loadData()", dataString);
         if (!!dataString && dataString.length) {
             const jsonData = JSON.parse(dataString);
             setAddresses(jsonData.addresses);
@@ -74,26 +73,30 @@ export default function App() {
         }
     };
 
-    const transferToken = () => {
+    const transferToken = async () => {
         if (!!web3) {
             if (!!token && !!addressForTransferToken && !!transferTokenAmount) {
                 setTransferTokenResult("pending");
                 const tx = token.methods.transfer(addressForTransferToken, transferTokenAmount)
-                    .encodeABI({
-                        from: account.address,
-                        gas: 1500000,
-                        gasPrice: '10000000000000'
-                    }).catch((err) => {
-                        console.log(err);
-                        setTransferTokenResult("error");
-                    });
+                    .encodeABI();
                 console.log(":tx", tx);
-                const signedTx = web3.eth.accounts.signTransaction(tx, accountPrivateKey).catch((err) => {
+                const nonce = await web3.eth.getTransactionCount(account.address);
+                console.log(":nonce", nonce);
+                let options = {
+                    from: account.address,
+                    to: token._address,
+                    gas: 80000,
+                    gasPrice: 1500000000,
+                    value: 0,
+                    data: tx,
+                    nonce: nonce
+                };
+                const signedTx = await web3.eth.accounts.signTransaction(options, accountPrivateKey).catch((err) => {
                     console.log(err);
                     setTransferTokenResult("error");
                 });
                 console.log(":signedTx", signedTx);
-                web3.eth.sendTransaction(signedTx).then((bal) => {
+                web3.eth.sendSignedTransaction(signedTx.rawTransaction).then((bal) => {
                     setTransferTokenResult("ok");
                 }).catch((err) => {
                     console.log(err);
