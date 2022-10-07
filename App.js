@@ -17,6 +17,8 @@ export default function App() {
     const [token, setToken] = useState(null);
     const [mnemonic, setMnemonic] = useState("");
     const [privateKeyInput, setPrivateKeyInput] = useState("");
+    const [addressForBalanceOf, setAddressForBalanceOf] = useState("");
+    const [balanceOf, setBalanceOf] = useState("");
 
     const prepareInfo = () => {
         return {
@@ -48,6 +50,19 @@ export default function App() {
             if (!!token && !!account) {
                 token.methods.balanceOf(account.address).call().then((bal) => {
                     setMyTokenBalance(bal);
+                });
+            }
+        }
+    };
+
+    const updateBalanceOf = () => {
+        if (!!web3) {
+            if (!!token && !!addressForBalanceOf) {
+                setBalanceOf("pending");
+                token.methods.balanceOf(addressForBalanceOf).call().then((bal) => {
+                    setBalanceOf(bal);
+                }).catch(() => {
+                    setBalanceOf("error");
                 });
             }
         }
@@ -134,7 +149,7 @@ export default function App() {
 
                 <Text>Select account:</Text>
                 <ModalDropdown style={styles.dropDown} options={addresses} onSelect={selectAccount}/>
-                <Text>My balance: {ethBalance} ETH</Text>
+                <Text>My balance: {ethBalance} wei</Text>
 
                 <Text/>
                 <Text>Token: {token ? token._address : ""}</Text>
@@ -150,13 +165,13 @@ export default function App() {
                 <Text/>
 
                 <Text>Balance of:</Text>
-                <TextInput style={styles.textInput}/>
+                <TextInput style={styles.textInput} onChangeText={setAddressForBalanceOf}
+                           defaultValue={addressForBalanceOf}/>
                 <Button
-                    onPress={() => {
-                    }}
+                    onPress={updateBalanceOf}
                     title="Update"
                 />
-                <Text>balance: {myTokenBalance}</Text>
+                <Text>balance: {balanceOf}</Text>
 
                 <Text/>
 
@@ -167,7 +182,7 @@ export default function App() {
                 <Button
                     onPress={() => {
                     }}
-                    title="Transfer"
+                    title="Transfer token"
                 />
                 <Text>Result</Text>
 
