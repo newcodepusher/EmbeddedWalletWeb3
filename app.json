@@ -1,11 +1,4 @@
 {
-  "expo": {
-    "name": "EmbeddedWalletWeb3",
-    "slug": "EmbeddedWalletWeb3",
-    "version": "1.0.0",
-    "assetBundlePatterns": [
-      "**/*"
-    ]
-  },
-  "name": "EmbeddedWalletWeb3"
+  "name": "EthereumRNBoilerplate",
+  "displayName": "EthereumRNBoilerplate"
 }

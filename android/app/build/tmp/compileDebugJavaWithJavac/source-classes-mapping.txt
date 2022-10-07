@@ -1,0 +1,14 @@
+com/ethereumrnboilerplate/ReactNativeFlipper.java
+ com.ethereumrnboilerplate.ReactNativeFlipper
+ com.ethereumrnboilerplate.ReactNativeFlipper$1
+ com.ethereumrnboilerplate.ReactNativeFlipper$2
+ com.ethereumrnboilerplate.ReactNativeFlipper$2$1
+com/ethereumrnboilerplate/BuildConfig.java
+ com.ethereumrnboilerplate.BuildConfig
+com/ethereumrnboilerplate/MainApplication.java
+ com.ethereumrnboilerplate.MainApplication
+ com.ethereumrnboilerplate.MainApplication$1
+com/ethereumrnboilerplate/MainActivity.java
+ com.ethereumrnboilerplate.MainActivity
+com/facebook/react/PackageList.java
+ com.facebook.react.PackageList

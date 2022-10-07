@@ -1,16 +1,8 @@
-import crypto from "crypto";
-import safeCrypto from "react-native-fast-crypto";
-import {asyncRandomBytes} from "react-native-secure-randombytes";
-
-window.randomBytes = asyncRandomBytes;
-window.scryptsy = safeCrypto.scrypt;
-
-import {StatusBar} from 'expo-status-bar';
-import {StyleSheet, Text, View, ScrollView, TextInput, Button, AsyncStorage} from 'react-native';
-import {useCallback, useEffect, useState} from "react";
+import * as React from 'react';
+import {StyleSheet, Text, View, ScrollView, TextInput, Button, AsyncStorage, Clipboard} from 'react-native';
+import {useEffect, useState} from "react";
 import Web3 from "web3";
 import ModalDropdown from 'react-native-modal-dropdown';
-import * as Clipboard from 'expo-clipboard';
 import HDWallet from 'ethereum-hdwallet';
 
 const erc20Abi = require("./ERC20.json");
@@ -20,11 +12,11 @@ export default function App() {
     const [web3, setWeb3] = useState(null);
     const [account, setAccount] = useState("");
     const [addresses, setAddresses] = useState([]);
-    const [privateKeys, setPrivateKeys] = useState(null);
+    const [privateKeys, setPrivateKeys] = useState([]);
     const [myTokenBalance, setMyTokenBalance] = useState(0);
     const [token, setToken] = useState(null);
     const [mnemonic, setMnemonic] = useState("");
-    const [privateKeyInput, setPrivateKeyInput] = useState(null);
+    const [privateKeyInput, setPrivateKeyInput] = useState("");
 
     const saveData = () => {
         AsyncStorage.setItem('jsondata', JSON.stringify({}));
@@ -39,8 +31,8 @@ export default function App() {
             web3.eth.getBalance(account.address).then((balance) => {
                 setEthBalance(balance);
             });
-            if (!!token) {
-                token.methods.balanceOf("0xE1e4A2AC7045783FB6f248C11C5508900C4261Bf").call().then((bal) => {
+            if (!!token && !!account) {
+                token.methods.balanceOf(account.address).call().then((bal) => {
                     setMyTokenBalance(bal);
                 });
             }
@@ -51,8 +43,11 @@ export default function App() {
         updateInfo();
     }, [account]);
 
+
     const createAccount = (privateKey) => {
+        console.log(privateKey);
         const acc = web3.eth.accounts.privateKeyToAccount(privateKey);
+        console.log(acc);
         setAddresses([...addresses, acc.address]);
         setPrivateKeys([...privateKeys, privateKey]);
     };
@@ -76,8 +71,6 @@ export default function App() {
         console.log("init web3");
         const web3Instance = new Web3("https://goerli.infura.io/v3/33beb15f6748419fbb8b16ddf1420b31");
         setWeb3(web3Instance);
-        const acc = web3Instance.eth.accounts.privateKeyToAccount(privateKey);
-        setAccount(acc);
         const tokenInstance = new web3Instance.eth.Contract(erc20Abi.abi, "0x1fFE9c7110Bb3A07463bE5EBA80BD40F03EB3e3e");
         setToken(tokenInstance);
     };
@@ -87,7 +80,7 @@ export default function App() {
     }, []);
 
     const copyAll = () => {
-        Clipboard.setStringAsync('mail@mail.com').catch(console.error);
+        Clipboard.setString('mail@mail.com');
     };
 
     return (
@@ -97,7 +90,7 @@ export default function App() {
                 <Text/>
                 <Button
                     onPress={copyAll}
-                    title="Copy token address, priv keys, addresses to clipboard"
+                    title="Copy token address, private keys, addresses to clipboard"
                     color="#841584"
                 />
 
@@ -173,7 +166,6 @@ export default function App() {
                 />
                 <Text>Result</Text>
             </ScrollView>
-            <StatusBar style="auto"/>
         </View>
     );
 }
@@ -187,7 +179,7 @@ const styles = StyleSheet.create({
         marginTop: 50,
     },
     textInput: {
-        borderColor: "#00",
+        borderColor: "#000",
         borderWidth: 1,
         height: 40,
         width: 300,
