@@ -18,12 +18,26 @@ export default function App() {
     const [mnemonic, setMnemonic] = useState("");
     const [privateKeyInput, setPrivateKeyInput] = useState("");
 
+    const prepareInfo = () => {
+        return {
+            token: token._address,
+            privateKeys,
+            addresses,
+            rpc: web3.rpcUrl,
+        };
+    };
+
     const saveData = () => {
-        AsyncStorage.setItem('jsondata', JSON.stringify({}));
+        AsyncStorage.setItem('jsondata', JSON.stringify(prepareInfo()));
     };
 
     const loadData = async () => {
-        const dataString = await AsyncStorage.getItem('jsondata')
+        const dataString = await AsyncStorage.getItem('jsondata');
+        if (!!dataString && dataString.length) {
+            const jsonData = JSON.parse(dataString);
+            setAddresses(jsonData.addresses);
+            setPrivateKeys(jsonData.privateKeys);
+        }
     };
 
     const updateInfo = () => {
@@ -48,6 +62,7 @@ export default function App() {
         const acc = web3.eth.accounts.privateKeyToAccount(privateKey);
         setAddresses([...addresses, acc.address]);
         setPrivateKeys([...privateKeys, privateKey]);
+        saveData();
     };
 
     const createRandomKey = () => {
@@ -70,6 +85,7 @@ export default function App() {
         setWeb3(web3Instance);
         const tokenInstance = new web3Instance.eth.Contract(erc20Abi.abi, "0x1fFE9c7110Bb3A07463bE5EBA80BD40F03EB3e3e");
         setToken(tokenInstance);
+        loadData().catch(console.error);
     };
 
     useEffect(() => {
@@ -77,7 +93,7 @@ export default function App() {
     }, []);
 
     const copyAll = () => {
-        Clipboard.setString('mail@mail.com');
+        Clipboard.setString(JSON.stringify(prepareInfo(), null, 4));
     };
 
     const selectAccount = (index, address) => {
