@@ -45,9 +45,7 @@ export default function App() {
 
 
     const createAccount = (privateKey) => {
-        console.log(privateKey);
         const acc = web3.eth.accounts.privateKeyToAccount(privateKey);
-        console.log(acc);
         setAddresses([...addresses, acc.address]);
         setPrivateKeys([...privateKeys, privateKey]);
     };
@@ -57,9 +55,8 @@ export default function App() {
     };
 
     const createFromMnemonic = async () => {
-        const seed = Buffer.from(mnemonic, 'hex')
-        const hdwallet = HDWallet.fromSeed(seed)
-        const privateKey = `0x${hdwallet.derive(`m/44'/60'/0'/0/0`).getAddress().toString('hex')}`;
+        const hdwallet = HDWallet.fromMnemonic(mnemonic);
+        const privateKey = `0x${hdwallet.derive(`m/44'/60'/0'/0/0`).getPrivateKey().toString('hex')}`;
         createAccount(privateKey);
     };
 
@@ -81,6 +78,11 @@ export default function App() {
 
     const copyAll = () => {
         Clipboard.setString('mail@mail.com');
+    };
+
+    const selectAccount = (index, address) => {
+        const acc = web3.eth.accounts.privateKeyToAccount(privateKeys[index]);
+        setAccount(acc);
     };
 
     return (
@@ -115,7 +117,7 @@ export default function App() {
                 />
 
                 <Text>Select account:</Text>
-                <ModalDropdown style={styles.dropDown} options={addresses} onSelect={console.log}/>
+                <ModalDropdown style={styles.dropDown} options={addresses} onSelect={selectAccount}/>
                 <Text>My balance: {ethBalance} ETH</Text>
 
                 <Text/>
