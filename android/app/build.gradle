@@ -79,6 +79,8 @@ import com.android.build.OutputFile
 
 project.ext.react = [
     enableHermes: false,  // clean and rebuild if changing
+//     devDisabledInDev: true, // Disable dev server in dev release
+//     bundleInDebug: true, // add bundle to dev apk
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
